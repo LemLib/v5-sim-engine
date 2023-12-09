@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 3.22)
-set(CMAKE_CXX_STANDARD 23)
+cmake_minimum_required(VERSION 3.22.1)
 
-project(v5_device_sim)
-add_library(v5_device_sim SHARED src/main.cpp)
-target_include_directories(v5_device_sim PUBLIC include)
+project(v5-devices-sim)
+
+add_executable(${PROJECT_NAME} src/main.cpp)
