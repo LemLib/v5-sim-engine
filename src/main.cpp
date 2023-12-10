@@ -1,6 +1,7 @@
 #include <iostream>
+#include "v5_api.h"
 
 int main() {
-    std::cout << "Hello World!" << std::endl;
+    vex_printf("Hello, world!\n");
     return 0;
 }
