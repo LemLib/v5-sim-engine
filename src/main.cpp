@@ -1,10 +1,5 @@
-#include "v5_api.h"
-#include "Vector2D.hpp"
-
-using namespace sim;
-
+extern "C" void* pros_main(void* _);
 int main() {
-    V2Position position(1_in, 2_in);
-    vex_printf("Hello, world!\n");
+    pros_main(nullptr);
     return 0;
 }

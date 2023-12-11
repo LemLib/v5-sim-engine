@@ -11,5 +11,7 @@ add_executable(v5_sim_engine src/main.cpp include/units.hpp
         include/Vector2D.hpp)
 
 target_include_directories(v5_sim_engine PUBLIC pros-sim/simulator/include)
+target_include_directories(v5_sim_engine PUBLIC pros-sim/pros/include)
+
 target_include_directories(v5_sim_engine PUBLIC include)
-target_link_libraries(v5_sim_engine v5_sim_pros)
+target_link_libraries(v5_sim_engine v5_sim_user)
