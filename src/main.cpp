@@ -1,5 +1,10 @@
-extern "C" void* pros_main(void* _);
+#include <cstdio>
+extern "C" void pros_init();
+__attribute__((constructor(101))) void init() {
+    pros_init();
+}
 int main() {
-    pros_main(nullptr);
+
+    for(;;);
     return 0;
 }
