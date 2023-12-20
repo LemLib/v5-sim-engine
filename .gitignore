@@ -6,3 +6,6 @@ build
 !build/
 build/*
 !build/lib/
+cmake-build-debug
+bin
+.idea
