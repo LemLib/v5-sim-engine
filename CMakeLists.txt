@@ -7,8 +7,14 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "$<1:${CMAKE_SOURCE_DIR}/bin>")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "$<1:${CMAKE_SOURCE_DIR}/bin>")
 
 add_subdirectory(./pros-sim EXCLUDE_FROM_ALL=true)
-add_executable(v5_sim_engine src/main.cpp include/units.hpp
-        include/Vector2D.hpp)
+add_executable(v5_sim_engine
+        src/main.cpp
+        include/units.hpp
+        include/Vector2D.hpp
+        src/bot.cpp
+        include/bot.h
+        src/motors.cpp
+        include/motors.h)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
