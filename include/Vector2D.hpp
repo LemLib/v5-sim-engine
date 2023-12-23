@@ -7,59 +7,37 @@
 namespace sim {
     template<isQuantity T>
     class Vector2D {
-        T x, y;
 
     public:
-        Vector2D() : x(0.0), y(0.0) {
+        T x;
+        T y;
+
+        Vector2D<T>() : x(0.0), y(0.0) {
         }
 
-        Vector2D(T nx, T ny) : x(nx), y(ny) {
+        Vector2D<T>(T nx, T ny) : x(nx), y(ny) {
         }
 
-        static Vector2D fromPolar(Angle t, T m) {
+        static Vector2D<T> fromPolar(Angle t, T m) {
             m = m.abs();
             return Vector2D(m * units::cos(t), m * units::sin(t));
         }
 
-        static Vector2D unitVector(Angle t) { return fromPolar(t,  T(1.0)); }
+        static Vector2D<T> unitVector(Angle t) { return fromPolar(t,  T(1.0)); }
 
         T getX() { return x; }
 
         T getY() { return y; }
 
-        Vector2D operator+(Vector2D& other) { return Vector2D(x + other.x, y + other.y); }
+        Vector2D<T> operator+(Vector2D<T>& other) { return Vector2D<T>(x + other.x, y + other.y); }
 
-        Vector2D operator-(Vector2D& other) { return Vector2D(x - other.x, y - other.y); }
+        Vector2D<T> operator-(Vector2D<T>& other) { return Vector2D<T>(x - other.x, y - other.y); }
 
-        Vector2D operator*(double factor) { return Vector2D(x * factor, y * factor); }
+        Vector2D<T> operator*(double factor) { return Vector2D<T>(x * factor, y * factor); }
 
-        Vector2D operator/(double factor) { return Vector2D(x / factor, y / factor); }
+        Vector2D<T> operator/(double factor) { return Vector2D<T>(x / factor, y / factor); }
 
-        Vector2D& operator+=(Vector2D& other) {
-            x += other.x;
-            y += other.y;
-            return (*this);
-        }
-
-        Vector2D& operator-=(Vector2D& other) {
-            x -= other.x;
-            y -= other.y;
-            return (*this);
-        }
-
-        Vector2D& operator*=(double factor) {
-            x *= factor;
-            y *= factor;
-            return (*this);
-        }
-
-        Vector2D& operator/=(double factor) {
-            x /= factor;
-            y /= factor;
-            return *this;
-        }
-
-        double dot(Vector2D& other) { return (x * other.x + y * other.y).getValue(); }
+        double dot(Vector2D<T>& other) { return (x * other.x + y * other.y).getValue(); }
 
         Angle theta() { return atan2(y, x); }
 
@@ -105,4 +83,28 @@ namespace sim {
     typedef Vector2D<LinearVelocity> V2Velocity;
     typedef Vector2D<LinearAcceleration> V2Acceleration;
     typedef Vector2D<Force> V2Force;
+
+    template<isQuantity T>  Vector2D<T>& operator+=(Vector2D<T>& lhs, Vector2D<T>& rhs) {
+        lhs.x += rhs.x;
+        lhs.y += rhs.y;
+        return lhs;
+    }
+
+    template<isQuantity T> Vector2D<T>& operator-=(Vector2D<T>& lhs, Vector2D<T>& rhs) {
+        lhs.x -= rhs.x;
+        lhs.y -= rhs.y;
+        return lhs;
+    }
+
+    template<isQuantity T> Vector2D<T>& operator*=(T lhs, double factor) {
+        lhs.x *= factor;
+        lhs.y *= factor;
+        return lhs;
+    }
+
+    template<isQuantity T> Vector2D<T>& operator/=(T lhs, double factor) {
+        lhs.x /= factor;
+        lhs.y /= factor;
+        return lhs;
+    }
 }

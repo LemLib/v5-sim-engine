@@ -140,9 +140,9 @@ constexpr inline double to_##suffix(Name quantity) { return quantity.convert(rat
     template<isQuantity Q>
     constexpr Q operator-(const Q& lhs, const Q& rhs) { return Q(lhs.raw() - rhs.raw()); }
 
-    template<isQuantity Q1, isQuantity Q2>
-    constexpr Multiplication<Q1, Q2> operator*(const Q1& lhs, const Q2& rhs) {
-        return Multiplication<Q1, Q2>(lhs.raw() * rhs.raw());
+    template<isQuantity Q1, isQuantity Q2, isQuantity Q3 = Multiplication<Q1, Q2>>
+    constexpr Q3 operator*(const Q1& lhs, const Q2& rhs) {
+        return Q3(lhs.raw() * rhs.raw());
     }
 
     template<isQuantity Q>
@@ -155,9 +155,9 @@ constexpr inline double to_##suffix(Name quantity) { return quantity.convert(rat
         return Q(lhs.raw() * rhs);
     }
 
-    template<isQuantity Q1, isQuantity Q2>
-    constexpr Division<Q1, Q2> operator/(const Q1& lhs, const Q2& rhs) {
-        return Division<Q1, Q2>(lhs.raw() / rhs.raw());
+    template<isQuantity Q1, isQuantity Q2, isQuantity Q3 = Division<Q1, Q2>>
+    constexpr Q3 operator/(const Q1& lhs, const Q2& rhs) {
+        return Q3(lhs.raw() / rhs.raw());
     }
 
     template<isQuantity Q>
