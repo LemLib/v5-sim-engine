@@ -468,9 +468,11 @@ constexpr inline double to_##suffix(Name quantity) { return quantity.convert(rat
 
     QUANTITY_NEW(Power, watt, 1, 2, -3, 0, 0)
 
+    QUANTITY_NEW(Current, amp, 0, 0, 0, 0, 1)
+
     QUANTITY_NEW(Charge, coulomb, 0, 0, 1, 0, 1)
 
-    QUANTITY_NEW(Voltage, v, 1, 2, -3, 0, -1)
+    QUANTITY_NEW(Voltage, volt, 1, 2, -3, 0, -1)
 
     constexpr Time FOREVER = Time(std::numeric_limits<double>::infinity());
 }
