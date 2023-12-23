@@ -2,15 +2,12 @@
 // Created by aang on 12/22/23.
 //
 
-#ifndef MOTORS_H
-#define MOTORS_H
+#pragma once
+#include "Vector2D.hpp"
 
+namespace sim {
+    class Motor {
 
+    };
 
-class motors {
-
-};
-
-
-
-#endif //MOTORS_H
+}
