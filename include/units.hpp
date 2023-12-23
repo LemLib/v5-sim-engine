@@ -404,6 +404,10 @@ constexpr inline double to_##suffix(Name quantity) { return quantity.convert(rat
         }
     } // namespace units
 
+    QUANTITY_NEW(Mass, kg, 1, 0, 0, 0, 0)
+    QUANTITY_LIT(Mass, g, kg / 1000)
+    QUANTITY_LIT(Mass, lb, g * 453.6)
+
     QUANTITY_NEW(Time, sec, 0, 0, 1, 0, 0)
     QUANTITY_LIT(Time, ms, sec / 1000)
     QUANTITY_LIT(Time, min, sec * 60)
@@ -473,6 +477,10 @@ constexpr inline double to_##suffix(Name quantity) { return quantity.convert(rat
     QUANTITY_NEW(Charge, coulomb, 0, 0, 1, 0, 1)
 
     QUANTITY_NEW(Voltage, volt, 1, 2, -3, 0, -1)
+
+    QUANTITY_NEW(Resistance, ohm, 1, 2, -3, 0, -2)
+
+    QUANTITY_NEW(Conductance, siemen, -1, -2, 3, 0, 2)
 
     constexpr Time FOREVER = Time(std::numeric_limits<double>::infinity());
 }

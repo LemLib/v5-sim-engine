@@ -13,8 +13,7 @@ add_executable(v5_sim_engine
         include/Vector2D.hpp
         src/bot.cpp
         include/bot.h
-        src/motors.cpp
-        include/motors.h)
+        include/util.h)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
