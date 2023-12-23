@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include "pros/rtos.hpp"
 #include "SDL2/SDL.h"
+#include "bot.h"
 
 extern "C" void pros_init();
 extern "C" void system_daemon_initialize();
@@ -48,11 +49,12 @@ bool init_sdl() {
 
 bool update() {
     SDL_RenderPresent(display.renderer);
+    sim::bot_update();
     return true;
 }
 
 int main() {
-
+    sim::bot_init();
     if (!init_sdl()) {
         return -1;
     }
