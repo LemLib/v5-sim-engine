@@ -24,11 +24,11 @@ namespace sim {
         Angle theta;
 
         Length track_radius = 6_in;
-        Length wheel_radius = 4_in;
+        Length wheel_radius = 2_in;
         AngularVelocity cartridge = 600_rpm;
         double gear_ratio;
         Mass mass = 10_lb;
-        Inertia inertia = 6_kgm2;
+        Inertia inertia = 0.5_kgm2;
 
         Voltage lV, rV;
         std::vector<uint8_t> left, right;

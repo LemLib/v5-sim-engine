@@ -114,6 +114,10 @@ namespace sim {
 
         pos += delta;
         theta += omega * dt;
+        std::cout << linVel << ", " << omega << std::endl;
+
+        while(theta > 1_rot) theta -= 1_rot;
+        while(theta < 0_rad) theta += 1_rot;
         mutex.unlock();
     }
 

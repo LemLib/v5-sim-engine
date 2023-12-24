@@ -9,12 +9,12 @@ extern "C" void pros_init();
 extern "C" void system_daemon_initialize();
 
 struct {
-    SDL_Renderer* renderer;
-    SDL_Window* window;
+    SDL_Renderer *renderer;
+    SDL_Window *window;
 } display;
 
 bool init_sdl() {
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) != 0) {
         printf("Couldn't initialize SDL: %s\n", SDL_GetError());
         return false;
     }
@@ -25,8 +25,8 @@ bool init_sdl() {
 
     windowFlags = 0;
 
-    display.window = SDL_CreateWindow("Graphical Simulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 720,
-                                      720, windowFlags);
+    display.window = SDL_CreateWindow("Graphical Simulator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 720, 720,
+                                      windowFlags);
 
     if (!display.window) {
         printf("Failed to open %d x %d window: %s\n", 720, 720, SDL_GetError());
@@ -46,17 +46,17 @@ bool init_sdl() {
 }
 
 __attribute__((constructor(101))) void init() {
-    for(int8_t i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
-        emu_smart_ports[i].port = (int8_t)(i+1);
+    for (int8_t i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
+        emu_smart_ports[i].port = (int8_t)(i + 1);
     }
-    for(int8_t i = 0; i < 2; i++) {
+    for (int8_t i = 0; i < 2; i++) {
         emu_smart_ports[i].exists = true;
         emu_smart_ports[i].type = kDeviceTypeMotorSensor;
         emu_smart_ports[i].motor.gearset = kMotorGearSet_18;
 
     }
-        emu_smart_ports[0].motor.voltage = 12000;
-    emu_smart_ports[1].motor.voltage = -6000;
+    emu_smart_ports[0].motor.voltage = 12000;
+    emu_smart_ports[1].motor.voltage = 12000;
     pros_init();
 }
 
@@ -64,21 +64,24 @@ using namespace sim;
 
 constexpr Length scr_constant = 0.2_in;
 
-bool update(Bot& bot) {
+bool update(Bot &bot) {
     static int a = 0;
     bot.update();
     static V2Position pos_prev;
     V2Position pos = bot.getPos();
     a++;
 
-    SDL_SetRenderDrawColor(display.renderer, 0, 0, 0,0);
+    SDL_SetRenderDrawColor(display.renderer, 0, 0, 0, 0);
 //    SDL_RenderClear(display.renderer);
-    lineRGBA(display.renderer, (int16_t) (pos.x.convert(scr_constant)), (int16_t) (720-pos.y.convert(scr_constant)), (int16_t) (pos_prev.x.convert(scr_constant)), (int16_t) (720-pos_prev.y.convert(scr_constant)), 255, 0, 0, 128);
+    lineRGBA(display.renderer, (int16_t)(pos.x.convert(scr_constant)), (int16_t)(720 - pos.y.convert(scr_constant)),
+             (int16_t)(pos_prev.x.convert(scr_constant)), (int16_t)(720 - pos_prev.y.convert(scr_constant)), 255, 0, 0,
+             128);
     SDL_RenderPresent(display.renderer);
     pos_prev = pos;
     a++;
-    if(!(a % 5))
-        std::cout << "X: " << pos.x << ", Y: " << pos.y << ", Theta: " << bot.getTheta().convert(deg) << "_deg" << std::endl;
+    if (!(a % 5))
+        std::cout << "X: " << pos.x << ", Y: " << pos.y << ", Theta: " << bot.getTheta().convert(deg) << "_deg"
+                  << std::endl;
     return true;
 }
 
@@ -88,10 +91,10 @@ int main() {
     }
     system_daemon_initialize();
     pros::Task::delay(2);
-    sim::Bot bot({2}, {1});
-    while(true) {
-        pros::Task::delay(4);
-        if(!update(bot)) exit(0);
+    sim::Bot bot({2}, {1}, 72.0/36); // 300 rpm 4"
+    while (true) {
+        pros::Task::delay(5);
+        if (!update(bot)) exit(0);
     }
 }
 
