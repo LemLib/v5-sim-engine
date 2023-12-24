@@ -1,7 +1,5 @@
 #pragma once
 
-#include <oneapi/tbb/version.h>
-
 #include "units.hpp"
 
 namespace sim {

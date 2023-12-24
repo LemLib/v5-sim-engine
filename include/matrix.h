@@ -1,5 +1,7 @@
 #pragma once
 
+// taken from https://github.com/Mc-Zen/Matrix/, https://mc-zen.github.io/Matrix/
+
 #include <array>
 #include <cmath>
 #include <numeric>

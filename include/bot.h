@@ -18,7 +18,7 @@ namespace sim {
     public:
     private:
         std::mutex mutex;
-        V2Position pos = {96_in, 24_in};
+        V2Position pos = {0_in, 0_in};
         V2Velocity vel;
         Angle theta;
 
@@ -37,7 +37,7 @@ namespace sim {
         Quantity<std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>> D1, D2;
         algebra::Matrix2d A_l, A_r, B_l, B_r;
         algebra::Matrix<int, 2, 2> C, D;
-        algebra::Matrix<double, 2, 1> X_l, X_r;
+        algebra::Vector2d X_l, X_r;
     public:
         Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, double gear_ratio = 1);
         void update();

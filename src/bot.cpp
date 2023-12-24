@@ -76,9 +76,11 @@ namespace sim {
                                              (D2 * C2_r).raw(), (D1 * C2_r).raw()});
         C = algebra::Matrix<int, 2, 2>({1, 0, 0, 1});
         D = algebra::Matrix<int, 2, 2>({0, 0, 0, 0});
-        X_l = algebra::Matrix<double, 2, 1>({0, 0});
-        X_r = algebra::Matrix<double, 2, 1>({0, 0});
+        X_l = algebra::Vector2d({0, 0});
+        X_r = algebra::Vector2d({0, 0});
+
         mutex.unlock();
+
     }
 
     void Bot::update() {
@@ -87,9 +89,7 @@ namespace sim {
         auto y_l = (A_l * X_l) + (B_l * e);
         auto y_r = (A_r * X_r) + (B_r * e);
 
-        X_l = y_l;
-        X_r = y_r;
-        Time dt = 0.5_ms;
+        Time dt = 4_ms;
         LinearVelocity leftSpeed = y_l(0, 0) * mps;
         LinearVelocity rightSpeed = y_r(1, 0) * mps;
         LinearVelocity linVel = (leftSpeed + rightSpeed) / 2;

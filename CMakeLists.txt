@@ -15,6 +15,8 @@ add_executable(v5_sim_engine
         include/bot.h
         include/util.h
         include/matrix.h
+        src/math.cpp
+        "include/ math.h"
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
