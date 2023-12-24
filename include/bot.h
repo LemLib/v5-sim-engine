@@ -4,7 +4,8 @@
 #include "util.h"
 #include "emu_devices.h"
 #include "vdml/vdml.h"
-#include "Eigen"
+#include "matrix.h"
+#include <mutex>
 
 namespace sim {
     constexpr Current STALL_CURRENT = 2.5_amp;
@@ -34,9 +35,9 @@ namespace sim {
         Quantity<std::ratio<1>, std::ratio<0>, std::ratio<-1>, std::ratio<-1>, std::ratio<0>> C1_l, C1_r;
         Quantity<std::ratio<0>, std::ratio<-1>, std::ratio<1>, std::ratio<0>, std::ratio<1>> C2_l, C2_r;
         Quantity<std::ratio<-1>, std::ratio<0>, std::ratio<0>, std::ratio<0>, std::ratio<0>> D1, D2;
-        Eigen::Matrix2d A_l, A_r, B_l, B_r;
-        Eigen::Matrix2i C, D;
-        Eigen::Matrix<double, 2, 1> X_l, X_r;
+        algebra::Matrix2d A_l, A_r, B_l, B_r;
+        algebra::Matrix<int, 2, 2> C, D;
+        algebra::Matrix<double, 2, 1> X_l, X_r;
     public:
         Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, double gear_ratio = 1);
         void update();

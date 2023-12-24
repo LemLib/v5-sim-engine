@@ -14,36 +14,7 @@ add_executable(v5_sim_engine
         src/bot.cpp
         include/bot.h
         include/util.h
-        Eigen/Cholesky
-        Eigen/CholmodSupport
-        Eigen/Core
-        Eigen/Dense
-        Eigen/Eigen
-        Eigen/Eigenvalues
-        Eigen/Geometry
-        Eigen/Householder
-        Eigen/IterativeLinearSolvers
-        Eigen/Jacobi
-        Eigen/KLUSupport
-        Eigen/LU
-        Eigen/MetisSupport
-        Eigen/OrderingMethods
-        Eigen/PardisoSupport
-        Eigen/PaStiXSupport
-        Eigen/QR
-        Eigen/QtAlignedMalloc
-        Eigen/Sparse
-        Eigen/SparseCholesky
-        Eigen/SparseCore
-        Eigen/SparseLU
-        Eigen/SparseQR
-        Eigen/SPQRSupport
-        Eigen/StdDeque
-        Eigen/StdList
-        Eigen/StdVector
-        Eigen/SuperLUSupport
-        Eigen/SVD
-        Eigen/UmfPackSupport
+        include/matrix.h
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")

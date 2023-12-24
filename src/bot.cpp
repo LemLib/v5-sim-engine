@@ -66,26 +66,24 @@ namespace sim {
         D2 = (1 / mass - units::square(track_radius) / inertia);
 
         // create the matrices
-        A_l = Eigen::Matrix2d({{(D1 * C1_l).raw(), (D2 * C1_l).raw()},
-                               {(D2 * C1_l).raw(), (D1 * C1_l).raw()}});
-        A_r = Eigen::Matrix2d({{(D1 * C1_r).raw(), (D2 * C1_r).raw()},
-                               {(D2 * C1_r).raw(), (D1 * C1_r).raw()}});
-        B_l = Eigen::Matrix2d({{(D1 * C2_l).raw(), (D2 * C2_l).raw()},
-                             {(D2 * C2_l).raw(), (D1 * C2_l).raw()}});
-        B_r = Eigen::Matrix2d({{(D1 * C2_r).raw(), (D2 * C2_r).raw()},
-                             {(D2 * C2_r).raw(), (D1 * C2_r).raw()}});
-        C = Eigen::Matrix<int, 2, 2>({{1, 0},
-                                      {0, 1}});
-        D = Eigen::Matrix<int, 2, 2>({{0, 0},
-                                      {0, 0}});
-        X_l = Eigen::Matrix<double, 2, 1>();
-        X_r = Eigen::Matrix<double, 2, 1>();
+        A_l = algebra::Matrix<double, 2, 2>({(D1 * C1_l).raw(), (D2 * C1_l).raw(),
+                                             (D2 * C1_l).raw(), (D1 * C1_l).raw()});
+        A_r = algebra::Matrix<double, 2, 2>({(D1 * C1_r).raw(), (D2 * C1_r).raw(),
+                                             (D2 * C1_l).raw(), (D1 * C1_r).raw()});
+        B_l = algebra::Matrix<double, 2, 2>({(D1 * C2_l).raw(), (D2 * C2_l).raw(),
+                                             (D2 * C2_l).raw(), (D1 * C2_l).raw()});
+        B_r = algebra::Matrix<double, 2, 2>({(D1 * C2_r).raw(), (D2 * C2_r).raw(),
+                                             (D2 * C2_r).raw(), (D1 * C2_r).raw()});
+        C = algebra::Matrix<int, 2, 2>({1, 0, 0, 1});
+        D = algebra::Matrix<int, 2, 2>({0, 0, 0, 0});
+        X_l = algebra::Matrix<double, 2, 1>({0, 0});
+        X_r = algebra::Matrix<double, 2, 1>({0, 0});
         mutex.unlock();
     }
 
     void Bot::update() {
         mutex.lock();
-        Eigen::Matrix<double, 2, 1> e({{lV.convert(volt), rV.convert(volt)}});
+        algebra::Matrix<double, 2, 1> e({lV.convert(volt), rV.convert(volt)});
         auto y_l = (A_l * X_l) + (B_l * e);
         auto y_r = (A_r * X_r) + (B_r * e);
 

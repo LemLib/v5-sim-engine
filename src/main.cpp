@@ -53,7 +53,7 @@ __attribute__((constructor(101))) void init() {
         emu_smart_ports[i].exists = true;
         emu_smart_ports[i].type = kDeviceTypeMotorSensor;
         emu_smart_ports[i].motor.gearset = kMotorGearSet_18;
-        //emu_smart_ports[i].motor.voltage = 12000 - i * 2000;
+        emu_smart_ports[i].motor.voltage = 12000 - i * 2000;
     }
     pros_init();
 }
