@@ -5,6 +5,7 @@
 #include "emu_devices.h"
 #include "vdml/vdml.h"
 #include "matrix.h"
+#include "math.h"
 #include <mutex>
 
 namespace sim {

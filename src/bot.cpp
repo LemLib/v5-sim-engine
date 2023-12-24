@@ -8,6 +8,7 @@
 
 namespace sim {
 
+    constexpr Time dt = 5_ms;
 
     Bot::Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, double gear_ratio) : left(left), right(right), gear_ratio(gear_ratio) {
         mutex.lock();
@@ -66,18 +67,27 @@ namespace sim {
         D2 = (1 / mass - units::square(track_radius) / inertia);
 
         // create the matrices
-        A_l = algebra::Matrix<double, 2, 2>({(D1 * C1_l).raw(), (D2 * C1_l).raw(),
+        auto lA_l = algebra::Matrix<double, 2, 2>({(D1 * C1_l).raw(), (D2 * C1_l).raw(),
                                              (D2 * C1_l).raw(), (D1 * C1_l).raw()});
-        A_r = algebra::Matrix<double, 2, 2>({(D1 * C1_r).raw(), (D2 * C1_r).raw(),
+        auto lA_r = algebra::Matrix<double, 2, 2>({(D1 * C1_r).raw(), (D2 * C1_r).raw(),
                                              (D2 * C1_l).raw(), (D1 * C1_r).raw()});
-        B_l = algebra::Matrix<double, 2, 2>({(D1 * C2_l).raw(), (D2 * C2_l).raw(),
+        auto lB_l = algebra::Matrix<double, 2, 2>({(D1 * C2_l).raw(), (D2 * C2_l).raw(),
                                              (D2 * C2_l).raw(), (D1 * C2_l).raw()});
-        B_r = algebra::Matrix<double, 2, 2>({(D1 * C2_r).raw(), (D2 * C2_r).raw(),
+        auto lB_r = algebra::Matrix<double, 2, 2>({(D1 * C2_r).raw(), (D2 * C2_r).raw(),
                                              (D2 * C2_r).raw(), (D1 * C2_r).raw()});
         C = algebra::Matrix<int, 2, 2>({1, 0, 0, 1});
         D = algebra::Matrix<int, 2, 2>({0, 0, 0, 0});
         X_l = algebra::Vector2d({0, 0});
         X_r = algebra::Vector2d({0, 0});
+
+        auto pairL = to_discrete<2>(lA_l, lB_l, dt.convert(sec));
+
+        auto pairR = to_discrete<2>(lA_r, lB_r, dt.convert(sec));
+
+        A_l = pairL.first;
+        B_l = pairL.second;
+        A_r = pairR.first;
+        B_r = pairR.second;
 
         mutex.unlock();
 
@@ -88,8 +98,9 @@ namespace sim {
         algebra::Matrix<double, 2, 1> e({lV.convert(volt), rV.convert(volt)});
         auto y_l = (A_l * X_l) + (B_l * e);
         auto y_r = (A_r * X_r) + (B_r * e);
+        X_l = y_l;
+        X_r = y_r;
 
-        Time dt = 4_ms;
         LinearVelocity leftSpeed = y_l(0, 0) * mps;
         LinearVelocity rightSpeed = y_r(1, 0) * mps;
         LinearVelocity linVel = (leftSpeed + rightSpeed) / 2;
