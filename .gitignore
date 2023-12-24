@@ -2,10 +2,7 @@
 .vscode
 
 # gitignore magic to include /build/lib but exclude everything else in /build
-build
-!build/
-build/*
+
 !build/lib/
 cmake-build-debug
-bin
 .idea

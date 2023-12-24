@@ -37,9 +37,9 @@ namespace sim {
 
         double dot(Vector2D<T>& other) { return (x * other.x + y * other.y).getValue(); }
 
-        Angle theta() { return atan2(y, x); }
+        Angle theta() { return units::atan2(y, x); }
 
-        T magnitude() { return sqrt(square(x) + square(y)); }
+        T magnitude() { return units::sqrt(units::square(x) + units::square(y)); }
 
         Vector2D vectorTo(Vector2D& other) { return Vector2D(other.x - x, other.y - y); }
 
@@ -48,21 +48,21 @@ namespace sim {
         T distance(Vector2D& other) { return sqrt(square(x - other.x, 2) + square(y - other.y, 2)); }
 
         Vector2D normalize() {
-            T m = magnitude();
-            return Vector2D(x / m, y / m);
+            T mag = magnitude();
+            return Vector2D(x / mag, y / mag);
         }
 
         void rotateBy(Angle angle) {
-            T m = magnitude();
+            T mag = magnitude();
             Angle t = theta() + angle;
-            x = m * units::cos(t);
-            y = m * units::sin(t);
+            x = mag * units::cos(t);
+            y = mag * units::sin(t);
         }
 
         void rotateTo(Angle angle) {
-            T m = magnitude();
-            x = m * units::cos(angle);
-            y = m * units::sin(angle);
+            T mag = magnitude();
+            x = mag * units::cos(angle);
+            y = mag * units::sin(angle);
         }
 
         Vector2D rotatedBy(Angle angle) {

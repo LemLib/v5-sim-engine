@@ -4,6 +4,7 @@
 #include "SDL2/SDL.h"
 #include "bot.h"
 #include "SDL2/SDL2_gfxPrimitives.h"
+#include "SDL2/SDL_image.h"
 
 extern "C" void pros_init();
 extern "C" void system_daemon_initialize();
@@ -42,6 +43,9 @@ bool init_sdl() {
         SDL_DestroyWindow(display.window);
         return false;
     }
+    auto field = IMG_LoadTexture(display.renderer, "field.png");
+    SDL_Rect rect = {0, 0, 720, 720};
+    SDL_RenderCopy(display.renderer, field, &rect, &rect);
     return true;
 }
 
@@ -56,7 +60,7 @@ __attribute__((constructor(101))) void init() {
 
     }
     emu_smart_ports[0].motor.voltage = 12000;
-    emu_smart_ports[1].motor.voltage = 12000;
+    emu_smart_ports[1].motor.voltage = 0;
     pros_init();
 }
 
@@ -65,23 +69,25 @@ using namespace sim;
 constexpr Length scr_constant = 0.2_in;
 
 bool update(Bot &bot) {
-    static int a = 0;
     bot.update();
-    static V2Position pos_prev;
-    V2Position pos = bot.getPos();
-    a++;
-
+    static V2Position pos, pos_prev, pos_prev_l, pos_prev_r;
+    std::pair<V2Position, V2Position> wheel_pos = bot.getWheelPos();
+    pos = bot.getPos();
     SDL_SetRenderDrawColor(display.renderer, 0, 0, 0, 0);
 //    SDL_RenderClear(display.renderer);
     lineRGBA(display.renderer, (int16_t)(pos.x.convert(scr_constant)), (int16_t)(720 - pos.y.convert(scr_constant)),
              (int16_t)(pos_prev.x.convert(scr_constant)), (int16_t)(720 - pos_prev.y.convert(scr_constant)), 255, 0, 0,
              128);
+    lineRGBA(display.renderer, (int16_t)(wheel_pos.first.x.convert(scr_constant)), (int16_t)(720 - wheel_pos.first.y.convert(scr_constant)),
+             (int16_t)(pos_prev_l.x.convert(scr_constant)), (int16_t)(720 - pos_prev_l.y.convert(scr_constant)), 0, 255, 0,
+             128);
+    lineRGBA(display.renderer, (int16_t)(wheel_pos.second.x.convert(scr_constant)), (int16_t)(720 - wheel_pos.second.y.convert(scr_constant)),
+             (int16_t)(pos_prev_r.x.convert(scr_constant)), (int16_t)(720 - pos_prev_r.y.convert(scr_constant)), 0, 0, 255,
+             128);
     SDL_RenderPresent(display.renderer);
+    pos_prev_l = wheel_pos.first;
+    pos_prev_r = wheel_pos.second;
     pos_prev = pos;
-    a++;
-    if (!(a % 5))
-        std::cout << "X: " << pos.x << ", Y: " << pos.y << ", Theta: " << bot.getTheta().convert(deg) << "_deg"
-                  << std::endl;
     return true;
 }
 

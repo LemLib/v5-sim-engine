@@ -5,7 +5,7 @@
 #include "emu_devices.h"
 #include "vdml/vdml.h"
 #include "matrix.h"
-#include "math.h"
+#include "../include/math.h"
 #include <mutex>
 
 namespace sim {
@@ -43,6 +43,7 @@ namespace sim {
         Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, double gear_ratio = 1);
         void update();
         V2Position getPos();
+        std::pair<V2Position, V2Position> getWheelPos();
         V2Velocity getVel();
         Angle getTheta();
     };

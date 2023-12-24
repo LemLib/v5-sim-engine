@@ -128,6 +128,15 @@ namespace sim {
         return x;
     }
 
+    std::pair<V2Position, V2Position> Bot::getWheelPos() {
+        V2Position offset = {0_m, track_radius};
+        mutex.lock();
+        offset.rotateBy(theta);
+        V2Position x = pos;
+        mutex.unlock();
+        return std::make_pair<V2Position, V2Position>(x+offset, x-offset);
+    }
+
     V2Velocity Bot::getVel() {
         mutex.lock();
         V2Velocity x = vel;
