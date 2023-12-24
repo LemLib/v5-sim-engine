@@ -3,12 +3,10 @@
 #include "pros/rtos.hpp"
 #include "SDL2/SDL.h"
 #include "bot.h"
+#include "SDL2/SDL2_gfxPrimitives.h"
 
 extern "C" void pros_init();
 extern "C" void system_daemon_initialize();
-__attribute__((constructor(101))) void init() {
-    pros_init();
-}
 
 struct {
     SDL_Renderer* renderer;
@@ -47,21 +45,48 @@ bool init_sdl() {
     return true;
 }
 
-bool update() {
+__attribute__((constructor(101))) void init() {
+    for(int8_t i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
+        emu_smart_ports[i].port = (int8_t)(i+1);
+    }
+    for(int8_t i = 0; i < 2; i++) {
+        emu_smart_ports[i].exists = true;
+        emu_smart_ports[i].type = kDeviceTypeMotorSensor;
+        emu_smart_ports[i].motor.gearset = kMotorGearSet_18;
+        //emu_smart_ports[i].motor.voltage = 12000 - i * 2000;
+    }
+    pros_init();
+}
+
+using namespace sim;
+
+constexpr Length scr_constant = 144_in / 720;
+
+bool update(Bot& bot) {
+    static int a = 0;
+    bot.update();
+    static V2Position pos_prev;
+    V2Position pos = bot.getPos();
+    a++;
+
+    SDL_SetRenderDrawColor(display.renderer, 0, 0, 0,0);
+//    SDL_RenderClear(display.renderer);
+    lineRGBA(display.renderer, (int16_t) (pos.x.convert(scr_constant)), (int16_t) (720-pos.y.convert(scr_constant)), (int16_t) (pos_prev.x.convert(scr_constant)), (int16_t) (720-pos_prev.y.convert(scr_constant)), 255, 0, 0, 128);
     SDL_RenderPresent(display.renderer);
-    sim::bot_update();
+    pos_prev = pos;
     return true;
 }
 
 int main() {
-    sim::bot_init();
     if (!init_sdl()) {
         return -1;
     }
     system_daemon_initialize();
+    pros::Task::delay(2);
+    sim::Bot bot({1}, {2});
     while(true) {
-        pros::Task::delay(20);
-        if(!update()) exit(0);
+        pros::Task::delay(4);
+        if(!update(bot)) exit(0);
     }
 }
 

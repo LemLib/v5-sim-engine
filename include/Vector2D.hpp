@@ -12,10 +12,10 @@ namespace sim {
         T x;
         T y;
 
-        Vector2D<T>() : x(0.0), y(0.0) {
+        Vector2D() : x(0.0), y(0.0) {
         }
 
-        Vector2D<T>(T nx, T ny) : x(nx), y(ny) {
+        Vector2D(T nx, T ny) : x(nx), y(ny) {
         }
 
         static Vector2D<T> fromPolar(Angle t, T m) {
