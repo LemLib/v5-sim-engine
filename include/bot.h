@@ -23,14 +23,12 @@ namespace sim {
         V2Velocity vel;
         Angle theta;
 
-        Length track_radius = 6_in;
-        Length wheel_radius = 2_in;
-        AngularVelocity cartridge = 600_rpm;
-        double gear_ratio;
-        Mass mass = 10_lb;
-        Inertia inertia = 0.5_kgm2;
+        Length track_radius;
+        Length wheel_radius;
+        AngularVelocity cartridge;
+        Mass mass;
+        Inertia inertia;
 
-        Voltage lV, rV;
         std::vector<uint8_t> left, right;
         Quantity<std::ratio<-1>, std::ratio<-2>, std::ratio<2>, std::ratio<1>, std::ratio<1>> angular_vel_constant_l, angular_vel_constant_r;
         Quantity<std::ratio<1>, std::ratio<0>, std::ratio<-1>, std::ratio<-1>, std::ratio<0>> C1_l, C1_r;
@@ -40,7 +38,7 @@ namespace sim {
         algebra::Matrix<int, 2, 2> C, D;
         algebra::Vector2d X_l, X_r;
     public:
-        Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, double gear_ratio = 1);
+        Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, V2Position start, Angle start_theta, Length wheel_radius, Length track_radius, AngularVelocity cartridge, double gear_ratio, Mass mass, Inertia inertia = 0.5_kgm2);
         void update();
         V2Position getPos();
         std::pair<V2Position, V2Position> getWheelPos();

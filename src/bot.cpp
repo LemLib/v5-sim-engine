@@ -4,13 +4,15 @@
 
 
 #include "bot.h"
+#include "pros/rtos.h"
 
 
 namespace sim {
 
     constexpr Time dt = 5_ms;
 
-    Bot::Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, double gear_ratio) : left(left), right(right), gear_ratio(gear_ratio) {
+    Bot::Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, V2Position start, Angle start_theta, Length wheel_radius, Length track_radius, AngularVelocity cartridge, double gear_ratio, Mass mass, Inertia inertia)
+    : left(left), right(right), pos(start), theta(start_theta), wheel_radius(wheel_radius), track_radius(track_radius), cartridge(cartridge), mass(mass), inertia(inertia) {
         mutex.lock();
         int lc = 0, rc = 0;
 
@@ -20,7 +22,6 @@ namespace sim {
             if (!claim_port_try(port, pros::c::E_DEVICE_MOTOR)) continue;
             V5_DeviceT dev = registry_get_device(port)->device_info;
             if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
-                lV += dev->motor.voltage * (volt / 1000);
                 lc++;
             }
             port_mutex_give(dev->port);
@@ -29,13 +30,10 @@ namespace sim {
             if (!claim_port_try(port, pros::c::E_DEVICE_MOTOR)) continue;
             V5_DeviceT dev = registry_get_device(port)->device_info;
             if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
-                rV += dev->motor.voltage * (volt / 1000);
                 rc++;
             }
             port_mutex_give(dev->port);
         }
-        lV /= lc;
-        rV /= rc;
 
         // determine the actual torques, currents, etc for each drivetrain side based on motor count
         Torque stall_torque_l = lc * STALL_TORQUE;
@@ -95,6 +93,27 @@ namespace sim {
 
     void Bot::update() {
         mutex.lock();
+        Voltage lV = 0_volt, rV = 0_volt;
+        for(uint8_t port : left) {
+            if (!claim_port_try(port, pros::c::E_DEVICE_MOTOR)) continue;
+            V5_DeviceT dev = registry_get_device(port)->device_info;
+            if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
+                Voltage mv = dev->motor.voltage * volt/1000;
+                if(lV == 0_volt || units::abs(mv) > units::abs(lV))
+                    lV = mv;
+            }
+            port_mutex_give(port);
+        }
+        for(uint8_t port : right) {
+            if (!claim_port_try(port, pros::c::E_DEVICE_MOTOR)) continue;
+            V5_DeviceT dev = registry_get_device(port)->device_info;
+            if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
+                Voltage mv = dev->motor.voltage * volt/1000;
+                if(rV == 0_volt || units::abs(mv) > units::abs(rV))
+                    rV = mv;
+            }
+            port_mutex_give(port);
+        }
         algebra::Matrix<double, 2, 1> e({lV.convert(volt), rV.convert(volt)});
         auto y_l = (A_l * X_l) + (B_l * e);
         auto y_r = (A_r * X_r) + (B_r * e);
@@ -103,6 +122,9 @@ namespace sim {
 
         LinearVelocity leftSpeed = y_l(0, 0) * mps;
         LinearVelocity rightSpeed = y_r(1, 0) * mps;
+        AngularVelocity leftOmega = leftSpeed*rad / (M_2_PI* wheel_radius);
+        AngularVelocity rightOmega = leftSpeed*rad / (M_2_PI* wheel_radius);
+
         LinearVelocity linVel = (leftSpeed + rightSpeed) / 2;
         AngularVelocity omega = ((rightSpeed - leftSpeed) * rad) / (track_radius * 2);
         LinearVelocity vx = linVel * units::cos(theta);
@@ -114,10 +136,32 @@ namespace sim {
 
         pos += delta;
         theta += omega * dt;
-        std::cout << linVel << ", " << omega << std::endl;
 
         while(theta > 1_rot) theta -= 1_rot;
         while(theta < 0_rad) theta += 1_rot;
+
+        for(uint8_t port : left) {
+            if (!claim_port_try(port, pros::c::E_DEVICE_MOTOR)) continue;
+            V5_DeviceT dev = registry_get_device(port)->device_info;
+            if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
+                double d = leftOmega.convert( (rot/sec) / 180000);
+                dev->motor.velocity = d;
+                dev->motor.position = d;
+                dev->timestamp = pros::c::millis();
+            }
+            port_mutex_give(port);
+        }
+        for(uint8_t port : right) {
+            if (!claim_port_try(port, pros::c::E_DEVICE_MOTOR)) continue;
+            V5_DeviceT dev = registry_get_device(port)->device_info;
+            if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
+                double d = rightOmega.convert( (rot/sec) / 180000);
+                dev->motor.velocity = d;
+                dev->motor.position = d;
+                dev->timestamp = pros::c::millis();
+            }
+            port_mutex_give(port);
+        }
         mutex.unlock();
     }
 

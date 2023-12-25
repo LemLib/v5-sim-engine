@@ -46,6 +46,7 @@ bool init_sdl() {
     auto field = IMG_LoadTexture(display.renderer, "field.png");
     SDL_Rect rect = {0, 0, 720, 720};
     SDL_RenderCopy(display.renderer, field, &rect, &rect);
+
     return true;
 }
 
@@ -60,7 +61,7 @@ __attribute__((constructor(101))) void init() {
 
     }
     emu_smart_ports[0].motor.voltage = 12000;
-    emu_smart_ports[1].motor.voltage = 0;
+    emu_smart_ports[1].motor.voltage = 9000;
     pros_init();
 }
 
@@ -73,6 +74,7 @@ bool update(Bot &bot) {
     static V2Position pos, pos_prev, pos_prev_l, pos_prev_r;
     std::pair<V2Position, V2Position> wheel_pos = bot.getWheelPos();
     pos = bot.getPos();
+    //std::cout << pos.x << ", " << pos.y << std::endl;
     SDL_SetRenderDrawColor(display.renderer, 0, 0, 0, 0);
 //    SDL_RenderClear(display.renderer);
     lineRGBA(display.renderer, (int16_t)(pos.x.convert(scr_constant)), (int16_t)(720 - pos.y.convert(scr_constant)),
@@ -97,7 +99,7 @@ int main() {
     }
     system_daemon_initialize();
     pros::Task::delay(2);
-    sim::Bot bot({2}, {1}, 72.0/36); // 300 rpm 4"
+    sim::Bot bot({2}, {1}, {12_in, 12_in}, 0_deg, 2_in, 6_in, 600_rpm, 2, 10_lb); // 300 rpm 4"
     while (true) {
         pros::Task::delay(5);
         if (!update(bot)) exit(0);
