@@ -9,3 +9,11 @@ cmake-build-debug
 /bin/libv5_sim_pros.a
 /bin/libv5_sim_user.so
 /bin/v5_sim_engine
+/bin/cygv5_sim_user.dll
+/bin/cygv5_sim_pros.dll
+/bin/libSDL2_gfx.a
+/bin/libv5_sim_pros.dll.a
+/bin/libv5_sim_user.dll.a
+/bin/v5_sim_engine.exe
+/bin/v5_sim_engine.exe.stackdump
+/cmake-build-debug-coverage/

@@ -7,7 +7,7 @@
 #include "matrix.h"
 #include "../include/math.h"
 #include "pros/rtos.hpp"
-#include <mutex>
+#include <set>
 
 namespace sim {
     constexpr Current STALL_CURRENT = 2.5_amp;
@@ -24,13 +24,15 @@ namespace sim {
         V2Velocity vel;
         Angle theta;
 
+        uint32_t timestamp;
+
         Length track_radius;
         Length wheel_radius;
         AngularVelocity cartridge;
         Mass mass;
         Inertia inertia;
 
-        std::vector<uint8_t> left, right;
+        std::set<uint8_t> left, right;
         Quantity<std::ratio<-1>, std::ratio<-2>, std::ratio<2>, std::ratio<1>, std::ratio<1>> angular_vel_constant_l, angular_vel_constant_r;
         Quantity<std::ratio<1>, std::ratio<0>, std::ratio<-1>, std::ratio<-1>, std::ratio<0>> C1_l, C1_r;
         Quantity<std::ratio<0>, std::ratio<-1>, std::ratio<1>, std::ratio<0>, std::ratio<1>> C2_l, C2_r;
