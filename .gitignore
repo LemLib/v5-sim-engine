@@ -6,3 +6,6 @@
 !build/lib/
 cmake-build-debug
 .idea
+/bin/libv5_sim_pros.a
+/bin/libv5_sim_user.so
+/bin/v5_sim_engine
