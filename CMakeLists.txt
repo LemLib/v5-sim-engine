@@ -19,8 +19,8 @@ add_executable(v5_sim_engine
         "include/math.h"
 )
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -O2")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -O2")
 SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
 target_include_directories(v5_sim_engine PUBLIC pros-sim/simulator/include)
