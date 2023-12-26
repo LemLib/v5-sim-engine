@@ -6,6 +6,7 @@
 #include "vdml/vdml.h"
 #include "matrix.h"
 #include "../include/math.h"
+#include "pros/rtos.hpp"
 #include <mutex>
 
 namespace sim {
@@ -18,7 +19,7 @@ namespace sim {
     class Bot {
     public:
     private:
-        std::mutex mutex;
+        pros::Mutex mutex;
         V2Position pos = {0_in, 0_in};
         V2Velocity vel;
         Angle theta;
@@ -39,7 +40,7 @@ namespace sim {
         algebra::Vector2d X_l, X_r;
     public:
         Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, V2Position start, Angle start_theta, Length wheel_radius, Length track_radius, AngularVelocity cartridge, double gear_ratio, Mass mass, Inertia inertia = 0.5_kgm2);
-        void update();
+        void update(bool lock);
         V2Position getPos();
         std::pair<V2Position, V2Position> getWheelPos();
         V2Velocity getVel();

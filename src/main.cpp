@@ -50,7 +50,7 @@ bool init_sdl() {
 
 __attribute__((constructor(101))) void init() {
     for (int8_t i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
-        emu_smart_ports[i].port = (int8_t) (i + 1);
+        emu_smart_ports[i].port = (int8_t)(i + 1);
         emu_smart_ports[i].exists = true;
         emu_smart_ports[i].type = kDeviceTypeMotorSensor;
         emu_smart_ports[i].motor.gearset = kMotorGearSet_06;
@@ -64,62 +64,80 @@ constexpr Length scr_constant = 0.2_in;
 
 std::list<V2Position> pos, pos_l, pos_r;
 
-void print_pos(Bot &bot) {
+void print_pos(std::shared_ptr<Bot> &bot) {
     static auto field_img = IMG_LoadTexture(display.renderer, "field.png");
-    static auto bot_img = IMG_LoadTexture(display.renderer, "bot.png");
-    std::pair<V2Position, V2Position> wheel_pos = bot.getWheelPos();
-    pos.emplace_back(bot.getPos());
+    static auto bot_img = IMG_LoadTexture(display.renderer, "bot->png");
+    std::pair<V2Position, V2Position> wheel_pos = bot->getWheelPos();
+    pos.emplace_back(bot->getPos());
     if (pos.size() > 20) pos.erase(pos.begin());
     pos_l.emplace_back(wheel_pos.first);
     if (pos_l.size() > 20) pos_l.erase(pos_l.begin());
     pos_r.emplace_back(wheel_pos.second);
     if (pos_r.size() > 20) pos_r.erase(pos_r.begin());
     //std::cout << pos.x << ", " << pos.y << std::endl;
-    auto x = (int16_t) (pos.back().x.convert(scr_constant));
-    auto y = (int16_t) (720 - pos.back().y.convert(scr_constant));
-    SDL_Rect rect2 = {x-30, y-33, 60, 66};
+    auto x = (int16_t)(pos.back().x.convert(scr_constant));
+    auto y = (int16_t)(720 - pos.back().y.convert(scr_constant));
+    SDL_Rect rect2 = {x - 30, y - 33, 60, 66};
     SDL_SetRenderDrawColor(display.renderer, 0, 0, 0, 0);
     SDL_RenderClear(display.renderer);
     SDL_RenderCopy(display.renderer, field_img, nullptr, nullptr);
-    SDL_RenderCopyEx(display.renderer, bot_img, nullptr, &rect2, 90 - bot.getTheta().convert(deg), nullptr, SDL_FLIP_NONE);
+    SDL_RenderCopyEx(display.renderer, bot_img, nullptr, &rect2, 90 - bot->getTheta().convert(deg), nullptr,
+                     SDL_FLIP_NONE);
     V2Position prev = pos.front();
-    for (V2Position a: pos) {
-        lineRGBA(display.renderer, (int16_t) (a.x.convert(scr_constant)), (int16_t) (720 - a.y.convert(scr_constant)),
-                 (int16_t) (prev.x.convert(scr_constant)), (int16_t) (720 - prev.y.convert(scr_constant)), 255, 0, 0,
-                 128);
-        prev = a;
-    }
+    if (pos.size() > 1)
+        for (V2Position a: pos) {
+            lineRGBA(display.renderer, (int16_t)(a.x.convert(scr_constant)),
+                     (int16_t)(720 - a.y.convert(scr_constant)),
+                     (int16_t)(prev.x.convert(scr_constant)), (int16_t)(720 - prev.y.convert(scr_constant)), 255, 0,
+                     0,
+                     128);
+            prev = a;
+        }
     prev = pos_l.front();
-    for (V2Position a: pos_l) {
-        lineRGBA(display.renderer, (int16_t) (a.x.convert(scr_constant)), (int16_t) (720 - a.y.convert(scr_constant)),
-                 (int16_t) (prev.x.convert(scr_constant)), (int16_t) (720 - prev.y.convert(scr_constant)), 0, 255, 0,
-                 128);
-        prev = a;
-    }
-    prev = pos_r.front();
+    if (pos_l.size() > 1)
+        for (V2Position a: pos_l) {
+            lineRGBA(display.renderer, (int16_t)(a.x.convert(scr_constant)),
+                     (int16_t)(720 - a.y.convert(scr_constant)),
+                     (int16_t)(prev.x.convert(scr_constant)), (int16_t)(720 - prev.y.convert(scr_constant)), 0, 255,
+                     0,
+                     128);
+            prev = a;
+        }
+    if (pos_l.size() > 1)
+        prev = pos_r.front();
     for (V2Position a: pos_r) {
-        lineRGBA(display.renderer, (int16_t) (a.x.convert(scr_constant)), (int16_t) (720 - a.y.convert(scr_constant)),
-                 (int16_t) (prev.x.convert(scr_constant)), (int16_t) (720 - prev.y.convert(scr_constant)), 0, 0, 255,
+        lineRGBA(display.renderer, (int16_t)(a.x.convert(scr_constant)), (int16_t)(720 - a.y.convert(scr_constant)),
+                 (int16_t)(prev.x.convert(scr_constant)), (int16_t)(720 - prev.y.convert(scr_constant)), 0, 0, 255,
                  128);
         prev = a;
     }
     SDL_RenderPresent(display.renderer);
 }
 
+extern "C" bool sim_SDL_init();
+extern "C" void display_background_processing();
+
+std::shared_ptr<sim::Bot> bot;
+
+extern "C" void engine_update() {
+    bot->update(false);
+}
+
 int main() {
-    if (!init_sdl()) {
-        return -1;
-    }
+    if (!init_sdl()) return 1;
+    if (!sim_SDL_init()) return 1;
     system_daemon_initialize();
-    pros::Task::delay(2);
-    sim::Bot bot({2}, {1}, {36_in, 36_in}, 0_deg, 2_in, 6_in, 600_rpm, 2, 10_lb); // 300 rpm 4"
+    static Bot bota({2}, {1}, {36_in, 36_in}, 0_deg, 2_in, 6_in, 600_rpm, 2, 12_lb, 1_kgm2);
+    bot = std::shared_ptr<Bot>(&bota); // 300 rpm 4"
     int a = 0;
     while (true) {
         pros::Task::delay(5);
-        bot.update();
+
         a++;
-        if ((a % 7) != 0) continue;
-        print_pos(bot);
+        if (!(a % 4))
+            display_background_processing();
+        if (!(a % 7))
+            print_pos(bot);
     }
 }
 

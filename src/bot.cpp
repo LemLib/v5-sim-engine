@@ -9,7 +9,8 @@
 
 namespace sim {
 
-    constexpr Time dt = 5_ms;
+
+    constexpr Time dt = 2_ms;
 
     Bot::Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, V2Position start,
              Angle start_theta, Length wheel_radius, Length track_radius, AngularVelocity cartridge, double gear_ratio,
@@ -20,22 +21,18 @@ namespace sim {
         int lc = 0, rc = 0;
 
         // figure out the motor count and voltage setting for each side
-
+        port_mutex_take_all();
         for (uint8_t port: left) {
-            if (!claim_port_try(port, pros::c::E_DEVICE_MOTOR)) continue;
             V5_DeviceT dev = registry_get_device(port)->device_info;
             if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
                 lc++;
             }
-            port_mutex_give(dev->port);
         }
         for (uint8_t port: right) {
-            if (!claim_port_try(port, pros::c::E_DEVICE_MOTOR)) continue;
             V5_DeviceT dev = registry_get_device(port)->device_info;
             if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
                 rc++;
             }
-            port_mutex_give(dev->port);
         }
 
         // determine the actual torques, currents, etc for each drivetrain side based on motor count
@@ -91,21 +88,22 @@ namespace sim {
         B_l = pairL.second;
         A_r = pairR.first;
         B_r = pairR.second;
-
+        port_mutex_give_all();
         mutex.unlock();
 
     }
 
-    void Bot::update() {
+    void Bot::update(bool lock) {
         mutex.lock();
-        port_mutex_take_all();
+        if(lock)
+            port_mutex_take_all();
         Voltage lV = 0_volt, rV = 0_volt;
         for (uint8_t port: left) {
             V5_DeviceT dev = registry_get_device(port-1)->device_info;
             if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
                 Voltage mv = dev->motor.voltage * volt / 1000;
                 if (lV == 0_volt || units::abs(mv) > units::abs(lV))
-                    lV = mv;
+                    lV = -mv;
             }
         }
         for (uint8_t port: right) {
@@ -113,7 +111,7 @@ namespace sim {
             if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
                 Voltage mv = dev->motor.voltage * volt / 1000;
                 if (rV == 0_volt || units::abs(mv) > units::abs(rV))
-                    rV = -mv;
+                    rV = mv;
             }
         }
         algebra::Matrix<double, 2, 1> e({lV.convert(volt), rV.convert(volt)});
@@ -163,7 +161,8 @@ namespace sim {
                 dev->timestamp = timestamp;
             }
         }
-        port_mutex_give_all();
+        if(lock)
+            port_mutex_give_all();
         mutex.unlock();
     }
 
