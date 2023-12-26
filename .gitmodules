@@ -1,3 +1,4 @@
 [submodule "pros-sim"]
 	path = pros-sim
 	url = https://github.com/LemLib/pros-sim/
+	branch = master
