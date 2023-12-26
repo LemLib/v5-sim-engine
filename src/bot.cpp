@@ -9,9 +9,6 @@
 
 namespace sim {
 
-
-    constexpr Time dt = 2_ms;
-
     Bot::Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, V2Position start,
              Angle start_theta, Length wheel_radius, Length track_radius, AngularVelocity cartridge, double gear_ratio,
              Mass mass, Inertia inertia)
@@ -80,9 +77,9 @@ namespace sim {
         X_l = algebra::Vector2d({0, 0});
         X_r = algebra::Vector2d({0, 0});
 
-        auto pairL = to_discrete<2>(lA_l, lB_l, dt.convert(sec));
+        auto pairL = to_discrete<2>(lA_l, lB_l, 0.002);
 
-        auto pairR = to_discrete<2>(lA_r, lB_r, dt.convert(sec));
+        auto pairR = to_discrete<2>(lA_r, lB_r, 0.002);
 
         A_l = pairL.first;
         B_l = pairL.second;
@@ -97,6 +94,8 @@ namespace sim {
         mutex.lock();
         if(lock)
             port_mutex_take_all();
+        static Time dt = 2_ms;
+        uint32_t time = pros::millis();
         Voltage lV = 0_volt, rV = 0_volt;
         for (uint8_t port: left) {
             V5_DeviceT dev = registry_get_device(port-1)->device_info;
@@ -140,27 +139,44 @@ namespace sim {
         while (theta > 1_rot) theta -= 1_rot;
         while (theta < 0_rad) theta += 1_rot;
 
-        uint32_t timestamp = pros::c::millis();
 
         for (uint8_t port: left) {
-            V5_DeviceT dev = registry_get_device(port-1)->device_info;
-            if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
+            _V5_Device dev = emu_smart_ports[port-1];
+            if (dev.exists && dev.type == kDeviceTypeMotorSensor) {
                 double d = leftOmega.convert((rot / sec) / 180000);
-                dev->motor.velocity = d;
-                dev->motor.position = d;
-                dev->timestamp = timestamp;
+                dev.motor.velocity = d;
+                dev.motor.position = +d;
+                dev.timestamp = time;
             }
             port_mutex_give(port - 1);
         }
         for (uint8_t port: right) {
-            V5_DeviceT dev = registry_get_device(port-1)->device_info;
-            if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
+            _V5_Device dev = emu_smart_ports[port-1];
+            if (dev.exists && dev.type == kDeviceTypeMotorSensor) {
                 double d = rightOmega.convert((rot / sec) / 180000);
-                dev->motor.velocity = d;
-                dev->motor.position = d;
-                dev->timestamp = timestamp;
+                dev.motor.velocity = d;
+                dev.motor.position = +d;
+                dev.timestamp = time;
             }
         }
+        for(uint8_t i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
+            _V5_Device dev = emu_smart_ports[i];
+            if(!dev.exists || dev.type == kDeviceTypeNoSensor) continue;
+            switch(dev.type) {
+                case kDeviceTypeImuSensor:
+                dev.imu.rotation.x += omega.convert(degps) * dt.convert(sec);
+                dev.timestamp = time;
+                break;
+                case kDeviceTypeGpsSensor:
+                    dev.gps.position.x += delta.x.convert(in);
+                    dev.gps.position.x += delta.y.convert(in);
+                    dev.timestamp = time;
+                    break;
+                default:
+                    break;
+            }
+        }
+        timestamp = time;
         if(lock)
             port_mutex_give_all();
         mutex.unlock();
