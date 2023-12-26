@@ -123,16 +123,14 @@ __attribute__((constructor(101))) void init() {
     pros_init();
 }
 
-#ifdef WINVER
-
-#include <windows.h>
-
 extern "C" void initialize();
 extern "C" void competition_initialize();
 extern "C" void disabled();
 extern "C" void autonomous();
 extern "C" void opcontrol();
 
+#ifdef WINVER
+#include <windows.h>
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 #else
     int main() {
@@ -144,7 +142,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     system_daemon_initialize([](void *) {
         initialize();
     }, [](void *) {
-        competition_initialize();
+        competition_initialize;
     }, [](void *) {
         disabled();
     }, [](void *) {
