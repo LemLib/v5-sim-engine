@@ -13,25 +13,47 @@ namespace sim {
              Angle start_theta, Length wheel_radius, Length track_radius, AngularVelocity cartridge, double gear_ratio,
              Mass mass, Inertia inertia)
             : left(left), right(right), pos(start), theta(start_theta), wheel_radius(wheel_radius),
-              track_radius(track_radius), cartridge(cartridge), mass(mass), inertia(inertia) {
-        mutex.lock();
-        int lc = 0, rc = 0;
+              track_radius(track_radius), cartridge(cartridge), mass(mass), inertia(inertia), gear_ratio(gear_ratio) {
+        C = algebra::Matrix<int, 2, 2>({1, 0, 0, 1});
+        D = algebra::Matrix<int, 2, 2>({0, 0, 0, 0});
 
-        // figure out the motor count and voltage setting for each side
-        port_mutex_take_all();
+        X_l = algebra::Vector2d({0, 0});
+        X_r = algebra::Vector2d({0, 0});
+
+        D1 = (1 / mass + units::square(track_radius) / inertia);
+        D2 = (1 / mass - units::square(track_radius) / inertia);
+    }
+
+    void Bot::update(bool lock) {
+        mutex.lock();
+        if (lock)
+            port_mutex_take_all();
+        uint8_t lc = 0;
+        uint8_t rc = 0;
+
+        uint32_t time = pros::millis();
+        Time dt = time * ms - ptime * ms;
+        ptime = time;
+        Voltage lV = 0_volt, rV = 0_volt;
+
         for (uint8_t port: left) {
-            V5_DeviceT dev = registry_get_device(port)->device_info;
+            V5_DeviceT dev = registry_get_device(port - 1)->device_info;
             if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
+                Voltage mv = dev->motor.voltage * volt / 1000;
                 lc++;
+                if (lV == 0_volt || units::abs(mv) > units::abs(lV))
+                    lV = -mv;
             }
         }
         for (uint8_t port: right) {
-            V5_DeviceT dev = registry_get_device(port)->device_info;
+            V5_DeviceT dev = registry_get_device(port - 1)->device_info;
             if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
+                Voltage mv = dev->motor.voltage * volt / 1000;
                 rc++;
+                if (rV == 0_volt || units::abs(mv) > units::abs(rV))
+                    rV = mv;
             }
         }
-
         // determine the actual torques, currents, etc for each drivetrain side based on motor count
         Torque stall_torque_l = lc * STALL_TORQUE;
         Torque stall_torque_r = rc * STALL_TORQUE;
@@ -60,59 +82,25 @@ namespace sim {
         C2_l = (gear_ratio * torque_const_l) / (resistance_l * wheel_radius);
         C2_r = (gear_ratio * torque_const_r) / (resistance_r * wheel_radius);
 
-        D1 = (1 / mass + units::square(track_radius) / inertia);
-        D2 = (1 / mass - units::square(track_radius) / inertia);
-
         // create the matrices
-        auto lA_l = algebra::Matrix<double, 2, 2>({(D1 * C1_l).raw(), (D2 * C1_l).raw(),
+        algebra::Matrix<double, 2, 2> lA_l({(D1 * C1_l).raw(), (D2 * C1_l).raw(),
                                                    (D2 * C1_l).raw(), (D1 * C1_l).raw()});
-        auto lA_r = algebra::Matrix<double, 2, 2>({(D1 * C1_r).raw(), (D2 * C1_r).raw(),
+        algebra::Matrix<double, 2, 2> lA_r({(D1 * C1_r).raw(), (D2 * C1_r).raw(),
                                                    (D2 * C1_l).raw(), (D1 * C1_r).raw()});
-        auto lB_l = algebra::Matrix<double, 2, 2>({(D1 * C2_l).raw(), (D2 * C2_l).raw(),
+        algebra::Matrix<double, 2, 2> lB_l({(D1 * C2_l).raw(), (D2 * C2_l).raw(),
                                                    (D2 * C2_l).raw(), (D1 * C2_l).raw()});
-        auto lB_r = algebra::Matrix<double, 2, 2>({(D1 * C2_r).raw(), (D2 * C2_r).raw(),
+        algebra::Matrix<double, 2, 2> lB_r({(D1 * C2_r).raw(), (D2 * C2_r).raw(),
                                                    (D2 * C2_r).raw(), (D1 * C2_r).raw()});
-        C = algebra::Matrix<int, 2, 2>({1, 0, 0, 1});
-        D = algebra::Matrix<int, 2, 2>({0, 0, 0, 0});
-        X_l = algebra::Vector2d({0, 0});
-        X_r = algebra::Vector2d({0, 0});
 
-        auto pairL = to_discrete<2>(lA_l, lB_l, 0.002);
+        auto pairL = to_discrete<2>(lA_l, lB_l, dt.convert(sec));
 
-        auto pairR = to_discrete<2>(lA_r, lB_r, 0.002);
+        auto pairR = to_discrete<2>(lA_r, lB_r, dt.convert(sec));
 
         A_l = pairL.first;
         B_l = pairL.second;
         A_r = pairR.first;
         B_r = pairR.second;
-        port_mutex_give_all();
-        mutex.unlock();
 
-    }
-
-    void Bot::update(bool lock) {
-        mutex.lock();
-        if(lock)
-            port_mutex_take_all();
-        static Time dt = 2_ms;
-        uint32_t time = pros::millis();
-        Voltage lV = 0_volt, rV = 0_volt;
-        for (uint8_t port: left) {
-            V5_DeviceT dev = registry_get_device(port-1)->device_info;
-            if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
-                Voltage mv = dev->motor.voltage * volt / 1000;
-                if (lV == 0_volt || units::abs(mv) > units::abs(lV))
-                    lV = -mv;
-            }
-        }
-        for (uint8_t port: right) {
-            V5_DeviceT dev = registry_get_device(port-1)->device_info;
-            if (dev->exists && dev->type == kDeviceTypeMotorSensor) {
-                Voltage mv = dev->motor.voltage * volt / 1000;
-                if (rV == 0_volt || units::abs(mv) > units::abs(rV))
-                    rV = mv;
-            }
-        }
         algebra::Matrix<double, 2, 1> e({lV.convert(volt), rV.convert(volt)});
         auto y_l = (A_l * X_l) + (B_l * e);
         auto y_r = (A_r * X_r) + (B_r * e);
@@ -141,32 +129,31 @@ namespace sim {
 
 
         for (uint8_t port: left) {
-            _V5_Device dev = emu_smart_ports[port-1];
+            _V5_Device dev = emu_smart_ports[port - 1];
             if (dev.exists && dev.type == kDeviceTypeMotorSensor) {
                 double d = leftOmega.convert((rot / sec) / 180000);
                 dev.motor.velocity = d;
-                dev.motor.position = +d;
+                dev.motor.position += d;
                 dev.timestamp = time;
             }
-            port_mutex_give(port - 1);
         }
         for (uint8_t port: right) {
-            _V5_Device dev = emu_smart_ports[port-1];
+            _V5_Device dev = emu_smart_ports[port - 1];
             if (dev.exists && dev.type == kDeviceTypeMotorSensor) {
                 double d = rightOmega.convert((rot / sec) / 180000);
                 dev.motor.velocity = d;
-                dev.motor.position = +d;
+                dev.motor.position += d;
                 dev.timestamp = time;
             }
         }
-        for(uint8_t i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
+        for (uint8_t i = 0; i < V5_MAX_DEVICE_PORTS; i++) {
             _V5_Device dev = emu_smart_ports[i];
-            if(!dev.exists || dev.type == kDeviceTypeNoSensor) continue;
-            switch(dev.type) {
+            if (!dev.exists || dev.type == kDeviceTypeNoSensor) continue;
+            switch (dev.type) {
                 case kDeviceTypeImuSensor:
-                dev.imu.rotation.x += omega.convert(degps) * dt.convert(sec);
-                dev.timestamp = time;
-                break;
+                    dev.imu.rotation.x += omega.convert(degps) * dt.convert(sec);
+                    dev.timestamp = time;
+                    break;
                 case kDeviceTypeGpsSensor:
                     dev.gps.position.x += delta.x.convert(in);
                     dev.gps.position.x += delta.y.convert(in);
@@ -177,9 +164,9 @@ namespace sim {
             }
         }
         timestamp = time;
-        if(lock)
+        if (lock)
             port_mutex_give_all();
-        mutex.unlock();
+        mutex.give();
     }
 
     V2Position Bot::getPos() {

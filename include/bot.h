@@ -31,6 +31,9 @@ namespace sim {
         AngularVelocity cartridge;
         Mass mass;
         Inertia inertia;
+        double gear_ratio;
+
+        uint32_t ptime;
 
         std::set<uint8_t> left, right;
         Quantity<std::ratio<-1>, std::ratio<-2>, std::ratio<2>, std::ratio<1>, std::ratio<1>> angular_vel_constant_l, angular_vel_constant_r;
