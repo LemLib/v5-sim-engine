@@ -45,6 +45,7 @@ namespace sim {
         algebra::Vector2d X_l, X_r;
     public:
         Bot(std::initializer_list<uint8_t> left, std::initializer_list<uint8_t> right, V2Position start, Angle start_theta, Length wheel_radius, Length track_radius, AngularVelocity cartridge, double gear_ratio, Mass mass, Inertia inertia = 0.5_kgm2);
+        ~Bot();
         void update(bool lock);
         V2Position getPos();
         std::pair<V2Position, V2Position> getWheelPos();

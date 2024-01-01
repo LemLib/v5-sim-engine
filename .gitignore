@@ -7,7 +7,7 @@
 cmake-build-debug
 .idea
 /bin/libv5_sim_pros.a
-/bin/libv5_sim_user.so
+/libv5_sim_user.so
 /bin/v5_sim_engine
 /bin/cygv5_sim_user.dll
 /bin/cygv5_sim_pros.dll

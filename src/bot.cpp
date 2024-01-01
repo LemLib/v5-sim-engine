@@ -151,7 +151,7 @@ namespace sim {
             if (!dev.exists || dev.type == kDeviceTypeNoSensor) continue;
             switch (dev.type) {
                 case kDeviceTypeImuSensor:
-                    dev.imu.rotation.x += omega.convert(degps) * dt.convert(sec);
+                    dev.imu.rotation.z += omega.convert(degps) * dt.convert(sec);
                     dev.timestamp = time;
                     break;
                 case kDeviceTypeGpsSensor:
@@ -166,6 +166,10 @@ namespace sim {
         timestamp = time;
         if (lock)
             port_mutex_give_all();
+        mutex.give();
+    }
+
+    Bot::~Bot() {
         mutex.give();
     }
 
