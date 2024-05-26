@@ -1,5 +1,6 @@
 # V5-Sim-Engine
-(This project is very early in development; don't expect much at the moment)
+
+This project is now archived. If you are looking for a related project,look [here](https://github.com/vexide/vex-v5-sim).
 
 Welcome to the Lemlib VEX V5 Simulator! This open-source project aims to accurately simulate the full functionality of the V5 brain and PROS kernel.
 
